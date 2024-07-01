@@ -1,4 +1,4 @@
-package com.zfdang.touchhelper;
+package com.efttt.lockall;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -11,7 +11,7 @@ import android.util.Log;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import com.zfdang.TouchHelperApp;
+import com.efttt.TouchHelperApp;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;

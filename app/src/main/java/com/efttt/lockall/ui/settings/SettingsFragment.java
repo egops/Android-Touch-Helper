@@ -1,8 +1,7 @@
-package com.zfdang.touchhelper.ui.settings;
+package com.efttt.lockall.ui.settings;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
@@ -33,12 +32,12 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SeekBarPreference;
 
-import com.zfdang.touchhelper.PackagePositionDescription;
-import com.zfdang.touchhelper.PackageWidgetDescription;
-import com.zfdang.touchhelper.R;
-import com.zfdang.touchhelper.Settings;
-import com.zfdang.touchhelper.TouchHelperService;
-import com.zfdang.touchhelper.Utilities;
+import com.efttt.lockall.PackagePositionDescription;
+import com.efttt.lockall.PackageWidgetDescription;
+import com.efttt.lockall.R;
+import com.efttt.lockall.Settings;
+import com.efttt.lockall.TouchHelperService;
+import com.efttt.lockall.Utilities;
 
 import net.sourceforge.pinyin4j.PinyinHelper;
 import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;

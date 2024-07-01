@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.zfdang.touchhelper">
+    package="com.efttt.lockall">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -15,7 +15,7 @@
     </queries>
 
     <application
-        android:name="com.zfdang.TouchHelperApp"
+        android:name="com.efttt.TouchHelperApp"
         android:largeHeap="true"
         android:allowBackup="true"
         android:icon="@drawable/ic_touch_helper_icon"

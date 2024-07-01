@@ -1,4 +1,4 @@
-package com.zfdang.touchhelper.ui.settings;
+package com.efttt.lockall.ui.settings;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -16,9 +16,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
-import com.zfdang.touchhelper.R;
-import com.zfdang.touchhelper.Settings;
-import com.zfdang.touchhelper.Utilities;
+import com.efttt.lockall.R;
+import com.efttt.lockall.Settings;
+import com.efttt.lockall.Utilities;
 
 public class ManagePackageWidgetsDialogFragment extends DialogFragment {
 

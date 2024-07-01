@@ -1,4 +1,4 @@
-package com.zfdang.touchhelper.ui.about;
+package com.efttt.lockall.ui.about;
 
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -10,12 +10,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 
-import com.zfdang.touchhelper.R;
+import com.efttt.lockall.R;
 
 public class AboutFragment extends Fragment {
     private final String TAG = getClass().getName();

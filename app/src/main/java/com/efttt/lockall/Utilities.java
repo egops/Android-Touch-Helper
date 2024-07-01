@@ -1,11 +1,11 @@
-package com.zfdang.touchhelper;
+package com.efttt.lockall;
 
 import android.graphics.Rect;
 import android.util.Log;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.Toast;
 
-import com.zfdang.TouchHelperApp;
+import com.efttt.TouchHelperApp;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

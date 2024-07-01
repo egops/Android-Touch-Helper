@@ -1,9 +1,8 @@
-package com.zfdang.touchhelper;
+package com.efttt.lockall;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
 
 public class UserPresentReceiver extends BroadcastReceiver {
 

@@ -1,4 +1,4 @@
-package com.zfdang.touchhelper;
+package com.efttt.lockall;
 
 import java.io.Serializable;
 
