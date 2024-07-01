@@ -1,6 +1,7 @@
 package com.efttt.lockall.ui.settings;
 
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -32,10 +33,12 @@ import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
 import androidx.preference.SeekBarPreference;
 
+import com.efttt.lockall.HideActivity;
+import com.efttt.lockall.MainActivity;
 import com.efttt.lockall.PackagePositionDescription;
 import com.efttt.lockall.PackageWidgetDescription;
 import com.efttt.lockall.R;
-import com.efttt.lockall.Settings;
+import com.efttt.lockall.ASettings;
 import com.efttt.lockall.TouchHelperService;
 import com.efttt.lockall.Utilities;
 
@@ -59,7 +62,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     PackageManager packageManager;
     WindowManager winManager;
 
-    Settings mSetting;
+    ASettings mSetting;
 
     MultiSelectListPreference activity_positions;
     MultiSelectListPreference activity_widgets;
@@ -70,7 +73,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
         setPreferencesFromResource(R.xml.touch_helper_preference, rootKey);
 
-        mSetting = Settings.getInstance();
+        mSetting = ASettings.getInstance();
 
         initPreferences();
 
@@ -96,6 +99,30 @@ public class SettingsFragment extends PreferenceFragmentCompat {
     }
 
     private void initPreferences() {
+
+        CheckBoxPreference isShowIcon = findPreference("is_show_icon");
+        if(isShowIcon != null) {
+            isShowIcon.setChecked(mSetting.isShowAppIcon());
+            isShowIcon.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    Boolean value = (Boolean) newValue;
+                    mSetting.setShowAppIcon(value);
+
+                    if(!value) {
+                        PackageManager pm = getActivity().getPackageManager();
+                        ComponentName componentName = new ComponentName(getActivity(), HideActivity.class);
+                        pm.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+                    } else {
+                        PackageManager pm = getActivity().getPackageManager();
+                        ComponentName componentName = new ComponentName(getActivity(), HideActivity.class);
+                        pm.setComponentEnabledSetting(componentName, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
+                    }
+
+                    return true;
+                }
+            });
+        }
 
         CheckBoxPreference notification = findPreference("skip_ad_notification");
         if(notification != null) {
@@ -341,7 +368,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
         // manage saved activity widgets
         activity_widgets = (MultiSelectListPreference) findPreference("setting_activity_widgets");
-        mapActivityWidgets = Settings.getInstance().getPackageWidgets();
+        mapActivityWidgets = ASettings.getInstance().getPackageWidgets();
         updateMultiSelectListPreferenceEntries(activity_widgets, mapActivityWidgets.keySet());
         activity_widgets.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
@@ -357,7 +384,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                         mapActivityWidgets.remove(key);
                     }
                 }
-                Settings.getInstance().setPackageWidgets(mapActivityWidgets);
+                ASettings.getInstance().setPackageWidgets(mapActivityWidgets);
 
                 // refresh MultiSelectListPreference
                 updateMultiSelectListPreferenceEntries(activity_widgets, mapActivityWidgets.keySet());
@@ -388,7 +415,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
 
             // manage saved activity positions
         activity_positions = (MultiSelectListPreference) findPreference("setting_activity_positions");
-        mapActivityPositions = Settings.getInstance().getPackagePositions();
+        mapActivityPositions = ASettings.getInstance().getPackagePositions();
         updateMultiSelectListPreferenceEntries(activity_positions, mapActivityPositions.keySet());
         activity_positions.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
             @Override
@@ -404,7 +431,7 @@ public class SettingsFragment extends PreferenceFragmentCompat {
                         mapActivityPositions.remove(key);
                     }
                 }
-                Settings.getInstance().setPackagePositions(mapActivityPositions);
+                ASettings.getInstance().setPackagePositions(mapActivityPositions);
 
                 // refresh MultiSelectListPreference
                 updateMultiSelectListPreferenceEntries(activity_positions, mapActivityPositions.keySet());
@@ -433,10 +460,10 @@ public class SettingsFragment extends PreferenceFragmentCompat {
         super.onResume();
 
         // these values might be changed by adding new widget or positions, update entries for these two multipeline
-        mapActivityWidgets = Settings.getInstance().getPackageWidgets();
+        mapActivityWidgets = ASettings.getInstance().getPackageWidgets();
         updateMultiSelectListPreferenceEntries(activity_widgets, mapActivityWidgets.keySet());
 
-        mapActivityPositions = Settings.getInstance().getPackagePositions();
+        mapActivityPositions = ASettings.getInstance().getPackagePositions();
         updateMultiSelectListPreferenceEntries(activity_positions, mapActivityPositions.keySet());
     }
 }

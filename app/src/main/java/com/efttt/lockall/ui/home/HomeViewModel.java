@@ -11,12 +11,16 @@ public class HomeViewModel extends ViewModel {
     private MutableLiveData<Boolean> mAppPermission;
     private MutableLiveData<Boolean> mAccessibilityPermission;
     private MutableLiveData<Boolean> mPowerOptimization;
+    private MutableLiveData<Boolean> mUsagePermission;
+    private MutableLiveData<Boolean> mBackPermission;
 
     public HomeViewModel() {
         mText = new MutableLiveData<>();
         mAppPermission = new MutableLiveData<>();
         mAccessibilityPermission = new MutableLiveData<>();
         mPowerOptimization = new MutableLiveData<>();
+        mUsagePermission = new MutableLiveData<>();
+        mBackPermission = new MutableLiveData<>();
     }
 
     public LiveData<String> getText() {
@@ -33,5 +37,13 @@ public class HomeViewModel extends ViewModel {
 
     public MutableLiveData<Boolean> getPowerOptimization() {
         return mPowerOptimization;
+    }
+
+    public MutableLiveData<Boolean> getUsagePermission() {
+        return mUsagePermission;
+    }
+
+    public MutableLiveData<Boolean> getBackPermission() {
+        return mBackPermission;
     }
 }

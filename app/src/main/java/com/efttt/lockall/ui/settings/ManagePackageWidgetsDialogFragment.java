@@ -17,7 +17,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.efttt.lockall.R;
-import com.efttt.lockall.Settings;
+import com.efttt.lockall.ASettings;
 import com.efttt.lockall.Utilities;
 
 public class ManagePackageWidgetsDialogFragment extends DialogFragment {
@@ -26,7 +26,7 @@ public class ManagePackageWidgetsDialogFragment extends DialogFragment {
 
     private EditText editRules;
     private String originalRules;
-    private Settings setting;
+    private ASettings setting;
 
     @Nullable
     @Override
@@ -37,7 +37,7 @@ public class ManagePackageWidgetsDialogFragment extends DialogFragment {
         View view = inflater.inflate(R.layout.layout_manage_package_widgets, container, false);
 
         editRules = view.findViewById(R.id.editText_rules);
-        setting = Settings.getInstance();
+        setting = ASettings.getInstance();
         originalRules = setting.getPackageWidgetsInString();
         editRules.setText(originalRules);
 

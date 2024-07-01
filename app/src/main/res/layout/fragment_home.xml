@@ -33,6 +33,111 @@
 
         <TableRow
             android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/guideline_usage_permission"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.85" />
+
+                <TextView
+                    android:id="@+id/text_usage_permission"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/text_usage_permission"
+                    android:textSize="16sp"
+                    app:layout_constraintEnd_toStartOf="@id/guideline_usage_permission"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/button_usage_permission"
+                    style="@style/Widget.AppCompat.Button.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:src="@drawable/ic_configuration"
+                    android:text="@string/button_setting"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/text_usage_permission" />
+
+                <ImageView
+                    android:id="@+id/image_usage_permission"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_wrong"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="@+id/guideline_usage_permission"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/guideline_back_permission"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.85" />
+
+                <TextView
+                    android:id="@+id/text_back_permission"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/text_back_permission"
+                    android:textSize="16sp"
+                    app:layout_constraintEnd_toStartOf="@id/guideline_back_permission"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageButton
+                    android:id="@+id/button_back_permission"
+                    style="@style/Widget.AppCompat.Button.Small"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="8dp"
+                    android:src="@drawable/ic_configuration"
+                    android:text="@string/button_setting"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/text_back_permission" />
+
+                <ImageView
+                    android:id="@+id/image_back_permission"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_wrong"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="@+id/guideline_back_permission"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -98,7 +203,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    app:layout_constraintGuide_percent="0.85" />
+                    app:layout_constraintGuide_begin="323dp" />
 
                 <TextView
                     android:id="@+id/text_power_permission"

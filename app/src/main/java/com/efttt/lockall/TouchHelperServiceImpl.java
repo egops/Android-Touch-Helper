@@ -36,6 +36,8 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +54,7 @@ public class TouchHelperServiceImpl {
     private static final String SelfPackageName = "开屏跳过";
     private final AccessibilityService service;
 
-    private Settings mSetting;
+    private ASettings mSetting;
 
     // broadcast receiver handler
     private PackageChangeReceiver packageChangeReceiver;
@@ -79,6 +81,8 @@ public class TouchHelperServiceImpl {
     private static final int PACKAGE_POSITION_CLICK_RETRY_INTERVAL = 500;
     private static final int PACKAGE_POSITION_CLICK_RETRY = 6;
     private boolean isShow = false;
+
+    private Map<Date, Boolean> onOffTimes = new HashMap<Date, Boolean>();
 
     public TouchHelperServiceImpl(AccessibilityService service) {
         this.service = service;
@@ -120,7 +124,7 @@ public class TouchHelperServiceImpl {
             packageName = service.getPackageName();
 
             // read settings from sharedPreferences
-            mSetting = Settings.getInstance();
+            mSetting = ASettings.getInstance();
 
             // key words
             keyWordList = mSetting.getKeyWordList();
@@ -936,7 +940,7 @@ public class TouchHelperServiceImpl {
                 btAddWidget.setEnabled(false);
                 tvPackageName.setText(widgetDescription.packageName + " (以下控件数据已保存)");
                 // save
-                Settings.getInstance().setPackageWidgets(mapPackageWidgets);
+                ASettings.getInstance().setPackageWidgets(mapPackageWidgets);
             }
         });
         btAddPosition.setOnClickListener(new View.OnClickListener() {
@@ -946,7 +950,7 @@ public class TouchHelperServiceImpl {
                 btAddPosition.setEnabled(false);
                 tvPackageName.setText(positionDescription.packageName + " (以下坐标数据已保存)");
                 // save
-                Settings.getInstance().setPackagePositions(mapPackagePositions);
+                ASettings.getInstance().setPackagePositions(mapPackagePositions);
             }
         });
         btDumpScreen.setOnClickListener(new View.OnClickListener() {

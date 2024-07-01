@@ -5,6 +5,13 @@
     <PreferenceCategory app:title="基本设置">
 
         <CheckBoxPreference
+            app:icon="@drawable/ic_duration"
+            app:key="is_show_icon"
+            app:summaryOff="显示App图标"
+            app:summaryOn="显示App图标"
+            app:title="取消勾选隐藏(使用widget替代)" />
+
+        <CheckBoxPreference
             app:icon="@drawable/ic_notification"
             app:key="skip_ad_notification"
             app:summaryOff="不显示通知"

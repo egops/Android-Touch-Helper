@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-public class Settings {
-    private final String TAG = "Settings";
+public class ASettings {
+    private final String TAG = "ASettings";
     private final String Preference_Name = "TouchHelper_Config";
 
     private SharedPreferences mPreference;
@@ -31,11 +31,11 @@ public class Settings {
     private Gson mJson;
 
     // Singleton
-    private static Settings ourInstance = new Settings();
-    public static Settings getInstance() {
+    private static ASettings ourInstance = new ASettings();
+    public static ASettings getInstance() {
         return ourInstance;
     }
-    private Settings() {
+    private ASettings() {
         initSettings();
     }
 
@@ -45,6 +45,7 @@ public class Settings {
         mJson = new Gson();
 
         // init all settings from SharedPreferences
+        bShowAppIcon = mPreference.getBoolean(SHOW_APP_ICON, true);
         bSkipAdNotification = mPreference.getBoolean(SKIP_AD_NOTIFICATION, true);
 
         // initial duration of skip ad process
@@ -105,6 +106,20 @@ public class Settings {
         if (this.bSkipAdNotification != bSkipAdNotification) {
             this.bSkipAdNotification = bSkipAdNotification;
             mEditor.putBoolean(SKIP_AD_NOTIFICATION, this.bSkipAdNotification);
+            mEditor.apply();
+        }
+    }
+
+    // notification on skip ads?
+    private static final String SHOW_APP_ICON = "SHOW_APP_ICON";
+    private boolean bShowAppIcon;
+    public boolean isShowAppIcon() {
+        return bShowAppIcon;
+    }
+    public void setShowAppIcon(boolean bShowAppIcon) {
+        if (this.bShowAppIcon != bShowAppIcon) {
+            this.bShowAppIcon = bShowAppIcon;
+            mEditor.putBoolean(SHOW_APP_ICON, this.bShowAppIcon);
             mEditor.apply();
         }
     }

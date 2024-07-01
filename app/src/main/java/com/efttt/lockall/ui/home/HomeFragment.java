@@ -1,6 +1,7 @@
 package com.efttt.lockall.ui.home;
 
 import android.Manifest;
+import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -25,6 +26,8 @@ import androidx.lifecycle.ViewModelProviders;
 import com.efttt.lockall.R;
 import com.efttt.lockall.TouchHelperService;
 
+import java.lang.reflect.Method;
+
 public class HomeFragment extends Fragment {
 
     private final String TAG = getClass().getName();
@@ -41,6 +44,30 @@ public class HomeFragment extends Fragment {
         final Drawable drawableNo = ContextCompat.getDrawable(getContext(), R.drawable.ic_wrong);
 
         // set observers for widget
+        final ImageView imageUsagePermission = root.findViewById(R.id.image_usage_permission);
+        homeViewModel.getUsagePermission().observe(getViewLifecycleOwner(), new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if(aBoolean) {
+                    imageUsagePermission.setImageDrawable(drawableYes);
+                } else {
+                    imageUsagePermission.setImageDrawable(drawableNo);
+                }
+            }
+        });
+
+        final ImageView imageBackPermission = root.findViewById(R.id.image_back_permission);
+        homeViewModel.getBackPermission().observe(getViewLifecycleOwner(), new Observer<Boolean>() {
+            @Override
+            public void onChanged(Boolean aBoolean) {
+                if(aBoolean) {
+                    imageBackPermission.setImageDrawable(drawableYes);
+                } else {
+                    imageBackPermission.setImageDrawable(drawableNo);
+                }
+            }
+        });
+
         final ImageView imageAccessibilityPermission = root.findViewById(R.id.image_accessibility_permission);
         homeViewModel.getAccessibilityPermission().observe(getViewLifecycleOwner(), new Observer<Boolean>() {
             @Override
@@ -95,6 +122,26 @@ public class HomeFragment extends Fragment {
             }
         });
 
+        final ImageButton btUsagePermission = root.findViewById(R.id.button_usage_permission);
+        btUsagePermission.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent_abs = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+                intent_abs.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent_abs);
+            }
+        });
+
+        final ImageButton btBackPermission = root.findViewById(R.id.button_back_permission);
+        btBackPermission.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent_abs = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION);
+                intent_abs.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent_abs);
+            }
+        });
+
         // get the service status
         checkServiceStatus();
 
@@ -107,13 +154,34 @@ public class HomeFragment extends Fragment {
         super.onResume();
     }
 
+    private boolean isXiaomiBgStartPermissionAllowed(Context context) {
+        return Settings.canDrawOverlays(getContext());
+    }
+
+    // Method to check if the app has Usage Stats permission
+    private boolean hasUsageStatsPermission(Context context) {
+        AppOpsManager appOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+        int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS,
+                android.os.Process.myUid(), context.getPackageName());
+        return mode == AppOpsManager.MODE_ALLOWED;
+    }
+
     public void checkServiceStatus(){
 
         // detect the app storage permission
-        boolean bAppPermission =
-                ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
+        boolean bAppPermission = ContextCompat.checkSelfPermission(getContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED;
         MutableLiveData<Boolean> liveData = homeViewModel.getAppPermission();
         liveData.setValue(bAppPermission);
+
+        // detect the usage permission
+        MutableLiveData<Boolean> usage = homeViewModel.getUsagePermission();
+        boolean bUsagePermission= hasUsageStatsPermission(getContext());
+        usage.setValue(bUsagePermission);
+
+        // detect the back permission
+        MutableLiveData<Boolean> back = homeViewModel.getBackPermission();
+        boolean bBackPermission = isXiaomiBgStartPermissionAllowed(getContext());
+        back.setValue(bBackPermission);
 
         // detect the accessibility permission
         MutableLiveData<Boolean> accessibility = homeViewModel.getAccessibilityPermission();
