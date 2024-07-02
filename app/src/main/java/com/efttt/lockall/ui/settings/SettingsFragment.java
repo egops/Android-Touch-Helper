@@ -160,6 +160,64 @@ public class SettingsFragment extends PreferenceFragmentCompat {
             });
         }
 
+        CheckBoxPreference helperEnable = findPreference("helper_enable");
+        if(helperEnable != null) {
+            helperEnable.setChecked(mSetting.isHelperEnabled());
+            helperEnable.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    Boolean value = (Boolean) newValue;
+                    mSetting.setHelperEnabled(value);
+
+                    return true;
+                }
+            });
+        }
+
+        final SeekBarPreference maxUseTime = findPreference("helper_max_time");
+        if(maxUseTime != null) {
+            maxUseTime.setMax(60);
+            maxUseTime.setMin(1);
+            maxUseTime.setUpdatesContinuously(true);
+            maxUseTime.setValue(mSetting.getMaxUseTime());
+
+            maxUseTime.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    try {
+                        int value = (int) newValue;
+                        mSetting.setMaxUseTime(value);
+                    } catch (ClassCastException e) {
+
+                    }
+
+                    return true;
+                }
+            });
+        }
+
+        final SeekBarPreference restTime = findPreference("helper_rest_time");
+        if(restTime != null) {
+            restTime.setMax(60);
+            restTime.setMin(1);
+            restTime.setUpdatesContinuously(true);
+            restTime.setValue(mSetting.getRestTime());
+
+            restTime.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                @Override
+                public boolean onPreferenceChange(Preference preference, Object newValue) {
+                    try {
+                        int value = (int) newValue;
+                        mSetting.setRestTime(value);
+                    } catch (ClassCastException e) {
+
+                    }
+
+                    return true;
+                }
+            });
+        }
+
 
         // key words to detect skip-ad button
         EditTextPreference textKeyWords = findPreference("setting_key_words");

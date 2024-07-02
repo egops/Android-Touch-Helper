@@ -51,6 +51,11 @@ public class ASettings {
         // initial duration of skip ad process
         iSkipAdDuration = mPreference.getInt(SKIP_AD_DURATION, 4);
 
+        // helper
+        bHelperEnable = mPreference.getBoolean(HELPER_ENABLE, true);
+        iMaxUseTime = mPreference.getInt(MAX_USE_TIME, 40);
+        iRestTime = mPreference.getInt(REST_TIME, 20);
+
         // find all system packages, and set them as default value for whitelist
         PackageManager packageManager = TouchHelperApp.getAppContext().getPackageManager();
         Intent intent = new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
@@ -139,6 +144,50 @@ public class ASettings {
         }
     }
 
+    // notification on skip ads?
+    private static final String HELPER_ENABLE = "HELPER_ENABLE";
+    private boolean bHelperEnable;
+    public boolean isHelperEnabled() {
+        return bHelperEnable;
+    }
+    public void setHelperEnabled(boolean bHelperEnable) {
+        if (this.bHelperEnable != bHelperEnable) {
+            this.bHelperEnable = bHelperEnable;
+            ScreenTimeService.init();
+            mEditor.putBoolean(HELPER_ENABLE, this.bHelperEnable);
+            mEditor.apply();
+        }
+    }
+
+    // duration of skip ad process
+    private static final String MAX_USE_TIME = "MAX_USE_TIME";
+    private int iMaxUseTime;
+    public int getMaxUseTime() {
+        return iMaxUseTime;
+    }
+    public void setMaxUseTime(int iMaxUseTime) {
+        if (this.iMaxUseTime != iMaxUseTime) {
+            this.iMaxUseTime = iMaxUseTime;
+            ScreenTimeService.init();
+            mEditor.putInt(MAX_USE_TIME, this.iMaxUseTime);
+            mEditor.apply();
+        }
+    }
+
+    // duration of skip ad process
+    private static final String REST_TIME = "REST_TIME";
+    private int iRestTime;
+    public int getRestTime() {
+        return iRestTime;
+    }
+    public void setRestTime(int iRestTime) {
+        if (this.iRestTime != iRestTime) {
+            this.iRestTime = iRestTime;
+            ScreenTimeService.init();
+            mEditor.putInt(REST_TIME, this.iRestTime);
+            mEditor.apply();
+        }
+    }
 
     // whitelist of packages
     private static final String WHITELIST_PACKAGE = "WHITELIST_PACKAGE";

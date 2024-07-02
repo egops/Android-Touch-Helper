@@ -5,7 +5,7 @@
     <PreferenceCategory app:title="基本设置">
 
         <CheckBoxPreference
-            app:icon="@drawable/ic_duration"
+            app:icon="@drawable/ic_activity_position"
             app:key="is_show_icon"
             app:summaryOff="显示App图标"
             app:summaryOn="显示App图标"
@@ -23,6 +23,31 @@
             app:icon="@drawable/ic_duration"
             app:title="检测时长 (推荐值:4秒)"
             app:summary="目标应用启动后，在此时间内检测广告，之后不再检测。如果时间过短，广告可能未加载完，导致无法跳过"
+            app:showSeekBarValue="true" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory app:title="休息时间设置">
+
+        <CheckBoxPreference
+            app:icon="@drawable/ic_notification"
+            app:key="helper_enable"
+            app:summaryOff="启用"
+            app:summaryOn="是否启用检测"
+            app:title="是否启用检测" />
+
+        <SeekBarPreference
+            app:key="helper_max_time"
+            app:icon="@drawable/ic_duration"
+            app:title="可用时长"
+            app:summary="最大可用时长"
+            app:showSeekBarValue="true" />
+
+        <SeekBarPreference
+            app:key="helper_rest_time"
+            app:icon="@drawable/ic_duration"
+            app:title="休息时长"
+            app:summary="休息时长"
             app:showSeekBarValue="true" />
 
     </PreferenceCategory>
@@ -75,17 +100,6 @@
             app:entries="@array/empty_entries"
             app:entryValues="@array/empty_entries"
             app:dialogTitle="勾选要保留的程序"/>
-
-        <Preference
-            app:summary="点击查看使用说明"
-            app:icon="@drawable/ic_manual"
-            app:title="高级设置说明">
-
-            <intent
-                android:action="android.intent.action.VIEW"
-                android:data="https://touchhelper.zfdang.com/settings" />
-
-        </Preference>
 
     </PreferenceCategory>
 

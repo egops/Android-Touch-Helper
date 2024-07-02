@@ -15,9 +15,10 @@
         android:layout_marginBottom="16dp" />
 
     <RelativeLayout
+        android:id="@+id/dialog"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
+        android:layout_height="match_parent"
+        android:padding="0dp"
         android:background="@drawable/dialog_background"
         android:layout_centerInParent="true">
 
@@ -36,10 +37,17 @@
             android:id="@+id/time_remaining"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0:00"
+            android:text="00:00:00"
             android:textSize="24sp"
             android:textStyle="bold"
             android:layout_centerInParent="true" />
+
+        <Button
+            android:id="@+id/btn_close"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="关闭"
+            android:layout_alignParentBottom="true" />
 
     </RelativeLayout>
 

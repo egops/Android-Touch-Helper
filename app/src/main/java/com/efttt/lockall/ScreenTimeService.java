@@ -1,36 +1,34 @@
 package com.efttt.lockall;
 
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
-import android.view.KeyEvent;
-import android.view.Window;
+import android.view.LayoutInflater;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import android.app.Notification;
 import androidx.core.app.NotificationCompat;
 
 import java.lang.ref.WeakReference;
 
 public class ScreenTimeService extends Service {
+    public static boolean ENABLED = true;
+    public static long CHECK_INTERVAL = 1000; // 检查间隔1秒
+    public static long MAX_USE_TIME = 40 * 60 * 1000;
+    public static long REST_TIME = 20 * 60 * 1000;
 
-    private static long CHECK_INTERVAL = 1000; // 检查间隔1秒
-    public static long MAX_SCREEN_ON_TIME = 10 * 1000;
-    public static long REST_TIME = 10 * 1000;
     private ScreenTimeReceiver screenTimeReceiver;
     public static WeakReference<ScreenTimeService> sServiceRef;
 
@@ -39,12 +37,28 @@ public class ScreenTimeService extends Service {
     private Runnable restCheckRunnable;
     private Runnable timeoutCheckRunnable;
 
+    private NotificationCompat.Builder notificationBuilder;
+    private Runnable updateRunnable;
+
+    private View countdownView;
+    private WindowManager windowManager;
+    private long totalTime = 0;
+    private CountDownTimer countDownTimer;
+
     private static String TAG = "ScreenTimeService";
     private String CHANNEL_ID = "LockAll_CHNNEL1";
+
+    public static void init() {
+        ASettings settings = ASettings.getInstance();
+        ENABLED = settings.isHelperEnabled();
+        MAX_USE_TIME = settings.getMaxUseTime() * 10 * 1000;
+        REST_TIME = settings.getRestTime() * 10 * 1000;
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d(TAG, "Service Started");
+        init();
         Toast.makeText(this, "ScreenTimeService Started", Toast.LENGTH_SHORT).show();
 
         // Create notification channel for foreground service
@@ -60,90 +74,152 @@ public class ScreenTimeService extends Service {
             }
         }
 
-        Intent notificationIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
+//        Intent notificationIntent = new Intent(this, MainActivity.class);
+//        PendingIntent pendingIntent = PendingIntent.getActivity(this,
+//                0, notificationIntent, PendingIntent.FLAG_IMMUTABLE);
 
-        Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+        notificationBuilder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("Screen Time Service")
-                .setContentText("Tracking screen on/off events")
-                .setSmallIcon(R.drawable.ic_notification)
-                .setContentIntent(pendingIntent)
-                .build();
+                .setContentText("Tracking screen on")
+                .setSmallIcon(R.drawable.ic_notification);
+//                .setContentIntent(pendingIntent)
 
-        startForeground(1, notification);
+        startForeground(1, notificationBuilder.build());
+
+        // Start the update task
+        notiticationUpdateTask();
 
         // Return START_STICKY to make the service restart if it gets terminated
         return START_STICKY;
     }
 
-    public void showUnlockDialog() {
-        // Create and display the dialog
-        final Dialog dialog = new Dialog(this, android.R.style.Theme_Translucent_NoTitleBar_Fullscreen);
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.custom_countdown_dialog);
-        dialog.setCancelable(false); // 设置是否可以通过点击空白区域或返回键关闭弹窗
-
-        // 初始化弹窗中的控件
-        TextView titleTextView = dialog.findViewById(R.id.dialog_title);
-        titleTextView.setText("Countdown Dialog");
-
-        final ProgressBar progressBar = dialog.findViewById(R.id.progress_bar);
-        final TextView timeRemainingTextView = dialog.findViewById(R.id.time_remaining);
-
-        // 设置倒计时时间和间隔
-        long totalTime = REST_TIME + Helper.getBeginTime() - System.currentTimeMillis(); // 总时间60秒
-        long interval = 1000; // 每秒更新一次
-
-        // 创建倒计时器
-        CountDownTimer countDownTimer = new CountDownTimer(totalTime, interval) {
+    private void notiticationUpdateTask() {
+        updateRunnable = new Runnable() {
             @Override
-            public void onTick(long millisUntilFinished) {
-                // 更新进度条
-                int progress = (int) (millisUntilFinished / (float) totalTime * 100);
-                progressBar.setProgress(progress);
+            public void run() {
+                String content;
+                long timeRemain = MAX_USE_TIME - (System.currentTimeMillis() - Helper.getLastOn());
+                if(Helper.isShowing()) {
+                    content = "@_@";
+                } else {
+                    long hour = timeRemain / 1000 / 60 / 60 % 24;
+                    long min = timeRemain / 1000 / 60 % 60;
+                    long sec = timeRemain / 1000 % 60;
+                    content = String.format("剩余时间: %02d:%02d:%02d", hour, min, sec);
+                }
+                notificationBuilder.setContentText(content);
+                NotificationManager manager = getSystemService(NotificationManager.class);
+                if (manager != null) {
+                    manager.notify(1, notificationBuilder.build());
+                }
 
-                // 更新剩余时间显示
-                long secondsRemaining = millisUntilFinished / 1000;
-                long minutes = secondsRemaining / 60;
-                long seconds = secondsRemaining % 60;
-                timeRemainingTextView.setText(String.format("%d:%02d", minutes, seconds));
-            }
-
-            @Override
-            public void onFinish() {
-                // 倒计时结束时的处理
-                progressBar.setProgress(0);
-                timeRemainingTextView.setText("0:00");
-                // 在这里可以添加倒计时结束后的操作
-                dialog.dismiss(); // 关闭弹窗
+                // Schedule the next update after 1 second
+                handler.postDelayed(this, CHECK_INTERVAL);
             }
         };
 
-        // 开始倒计时
-        countDownTimer.start();
-        dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
+        // Start the first update
+        handler.post(updateRunnable);
+    }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY);
-        } else {
-            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
-        }
+    public void showUnlockDialog() {
+        if(!ENABLED) return;
+        handler.post(() -> {
+            removeCountdownView();
+            if(!Helper.isShowing()) return;
+            windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+            LayoutInflater inflater = LayoutInflater.from(ScreenTimeService.this);
 
-        // 拦截返回键事件，防止关闭弹窗
-        dialog.setOnKeyListener(new DialogInterface.OnKeyListener() {
-            @Override
-            public boolean onKey(DialogInterface dialogInterface, int keyCode, KeyEvent keyEvent) {
-                if (keyCode == KeyEvent.KEYCODE_BACK && keyEvent.getAction() == KeyEvent.ACTION_UP) {
-                    // 拦截返回键事件，不做任何操作
-                    return true;
-                }
-                // 其他按键事件继续处理
-                return false;
+            countdownView = inflater.inflate(R.layout.custom_countdown_dialog, null);
+
+            final TextView titleTextView = countdownView.findViewById(R.id.dialog_title);
+            final ProgressBar progressBar = countdownView.findViewById(R.id.progress_bar);
+            final TextView timeRemainingTextView = countdownView.findViewById(R.id.time_remaining);
+            final Button btnClose = countdownView.findViewById(R.id.btn_close);
+
+            titleTextView.setText("Countdown Dialog");
+
+            // 设置 WindowManager.LayoutParams
+            WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.MATCH_PARENT,
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,
+                    PixelFormat.TRANSLUCENT);
+
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+                params.type = WindowManager.LayoutParams.TYPE_PHONE;
             }
-        });
 
-        dialog.show();
+            // 添加 View 到 WindowManager
+            windowManager.addView(countdownView, params);
+            totalTime = REST_TIME - (System.currentTimeMillis() - Helper.getRestStart());
+
+            if(totalTime <= 0) return;
+
+            // 创建倒计时器
+            countDownTimer = new CountDownTimer(totalTime, 1000) {
+                @Override
+                public void onTick(long millisUntilFinished) {
+                    // 更新进度条
+                    int progress = (int) (millisUntilFinished / (float) totalTime * 100);
+                    progressBar.setProgress(progress);
+
+                    // 更新剩余时间显示
+                    long secondsRemaining = millisUntilFinished / 1000;
+                    long minutes = secondsRemaining / 60;
+                    long seconds = secondsRemaining % 60;
+                    long hours = secondsRemaining / 60 / 60;
+                    timeRemainingTextView.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
+                }
+
+                @Override
+                public void onFinish() {
+                    // 倒计时结束时的处理
+                    progressBar.setProgress(0);
+                    timeRemainingTextView.setText("00:00:00");
+                    // 移除 View
+                    resetRestTime();
+                }
+            };
+
+            // 开始倒计时
+            countDownTimer.start();
+
+            btnClose.setOnClickListener((a)->{
+                if(!ENABLED || timeRemainingTextView.getText().equals("00:00:00")) {
+                    resetRestTime();
+                } else {
+                    // 启动透明Activity进行指纹验证
+                    Intent biometricIntent = new Intent(this, BiometricPromptActivity.class);
+                    biometricIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(biometricIntent);
+                }
+            });
+        });
+    }
+
+    public void resetRestTime() {
+        Helper.setLastOn(0);
+        Helper.setLastOff(0);
+        Helper.setShowing(false);
+        removeCountdownView();
+    }
+
+    private void removeCountdownView() {
+        windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        if (countdownView != null && windowManager != null) {
+            try {
+                if(countDownTimer != null) {
+                    countDownTimer.cancel();
+                }
+
+                windowManager.removeView(countdownView);
+                countdownView = null;
+            } catch (IllegalArgumentException e) {
+                Log.e(TAG, "View not attached to window manager", e);
+            }
+        }
     }
 
     @Override
@@ -171,6 +247,8 @@ public class ScreenTimeService extends Service {
         unregisterReceiver(screenTimeReceiver);
         Log.d("ScreenTimeService", "ScreenTimeReceiver unregistered");
         stopHandler();
+        handler.removeCallbacks(updateRunnable);
+        removeCountdownView();
     }
 
     @Override
@@ -184,18 +262,48 @@ public class ScreenTimeService extends Service {
             @Override
             public void run() {
                 long currentM = System.currentTimeMillis();
-                if (ScreenTimeReceiver.isScreenOn() && !Helper.isShowing()) {
-                    // 亮屏处理
-                    if (Helper.getLastOn() == 0 || (currentM - Helper.getLastOn() > 20 * 60 * 1000)) {
-                        Helper.setLastOn(currentM);
-                    } else {
-                        if (currentM - Helper.getLastOn() > MAX_SCREEN_ON_TIME) {
-                            Log.d("ScreenTimeService", "Screen has been on for too long!");
-                            // 这里可以添加屏幕亮屏超时的处理逻辑
-                            Helper.setShowing(true);
-                            Helper.setBeginTime(currentM);
-                            showUnlockDialog();
+                if(!ENABLED) {
+                    resetRestTime();
+                }
+                if (ScreenTimeReceiver.isScreenOn()) {
+                    // 在屏幕打开且不再休息的情况下, 才计数
+                    if (!Helper.isShowing()) {
+                        if (currentM - Helper.getLastOff() > REST_TIME) {
+                            // 重置
+                            Helper.setLastOn(0);
+                            Helper.setLastOff(currentM);
                         }
+                        if (Helper.getLastOn() == 0) {
+                            Helper.setLastOn(currentM);
+                        } else {
+                            // 正常处理
+                            long timeRemain = MAX_USE_TIME - (currentM - Helper.getLastOn());
+                            if (timeRemain <= 0) {
+                                Log.d("ScreenTimeService", "Screen has been on for too long!");
+                                // 这里可以添加屏幕亮屏超时的处理逻辑
+                                Helper.setShowing(true);
+                                Helper.setRestStart(currentM);
+                                showUnlockDialog();
+                            }
+                            Helper.setLastOff(currentM);
+                        }
+                    } else {
+                        // 正在休息, 检查休息时间是不是到了
+                        if (Helper.getRestStart() == 0 || currentM - Helper.getRestStart() > REST_TIME) {
+                            // 重置
+                            resetRestTime();
+                        }
+                    }
+                } else {
+                    // 息屏下判断, 息屏的时间是不是比休息时间长, 如果长, 就算休息了
+                    if (!Helper.isShowing()) {
+                        if (Helper.getLastOff() == 0 || currentM - Helper.getLastOff() > REST_TIME) {
+                            // 重置
+                            Helper.setLastOn(0);
+                            Helper.setLastOff(currentM);
+                        }
+                        if(Helper.getLastOn() != 0)
+                            Helper.setLastOn(Helper.getLastOn() + 1000);
                     }
                 }
                 handler.postDelayed(this, CHECK_INTERVAL);
@@ -207,11 +315,11 @@ public class ScreenTimeService extends Service {
             public void run() {
                 long currentM = System.currentTimeMillis();
                 if (Helper.isShowing()) {
-                    if (currentM - Helper.getBeginTime() < REST_TIME) {
-                        // 正在休息倒计时
+                    if (currentM - Helper.getRestStart() < REST_TIME) {
+                        // 正在休息倒计时, 这里可能要开启检测, 避免卸载
 
                     } else {
-                        Helper.setBeginTime(0);
+                        Helper.setRestStart(0);
                         Helper.setShowing(false);
                         Helper.setLastOn(0);
                     }
