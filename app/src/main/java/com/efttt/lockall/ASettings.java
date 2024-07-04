@@ -55,6 +55,9 @@ public class ASettings {
         bHelperEnable = mPreference.getBoolean(HELPER_ENABLE, true);
         iMaxUseTime = mPreference.getInt(MAX_USE_TIME, 40);
         iRestTime = mPreference.getInt(REST_TIME, 20);
+        lLastLockTime = mPreference.getLong(LAST_LOCK_TIME, 0);
+        lLastOnTime = mPreference.getLong(LAST_ON_TIME, 0);
+        lLastOffTime = mPreference.getLong(LAST_OFF_TIME, 0);
 
         // find all system packages, and set them as default value for whitelist
         PackageManager packageManager = TouchHelperApp.getAppContext().getPackageManager();
@@ -189,6 +192,49 @@ public class ASettings {
         }
     }
 
+    // duration of skip ad process
+    private static final String LAST_LOCK_TIME = "LAST_LOCK_TIME";
+    private long lLastLockTime;
+    public long getLastLockTime() {
+        return lLastLockTime;
+    }
+    public void setLastLockTime(long iLastLockTime) {
+        if (this.lLastLockTime != iLastLockTime) {
+            this.lLastLockTime = iLastLockTime;
+            ScreenTimeService.init();
+            mEditor.putLong(LAST_LOCK_TIME, this.lLastLockTime);
+            mEditor.apply();
+        }
+    }
+
+    private static final String LAST_ON_TIME = "LAST_ON_TIME";
+    private long lLastOnTime;
+    public long getLastOnTime() {
+        return lLastOnTime;
+    }
+    public void setLastOnTime(long lLastOnTime) {
+        if(this.lLastOnTime != lLastOnTime) {
+            this.lLastOnTime = lLastOnTime;
+            ScreenTimeService.init();
+            mEditor.putLong(LAST_ON_TIME, this.lLastOnTime);
+            mEditor.apply();
+        }
+    }
+
+    private static final String LAST_OFF_TIME = "LAST_OFF_TIME";
+    private long lLastOffTime;
+    public long getLastOffTime() {
+        return lLastOffTime;
+    }
+    public void setLastOffTime(long lLastOffTime) {
+        if(this.lLastOffTime != lLastOffTime) {
+            this.lLastOffTime = lLastOffTime;
+            ScreenTimeService.init();
+            mEditor.putLong(LAST_OFF_TIME, this.lLastOffTime);
+            mEditor.apply();
+        }
+    }
+
     // whitelist of packages
     private static final String WHITELIST_PACKAGE = "WHITELIST_PACKAGE";
     private Set<String> setWhiteListPackages;
@@ -260,5 +306,4 @@ public class ASettings {
         mEditor.putString(PACKAGE_POSITIONS, json);
         mEditor.apply();
     }
-
 }

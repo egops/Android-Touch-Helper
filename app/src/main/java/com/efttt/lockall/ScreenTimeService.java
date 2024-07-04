@@ -3,6 +3,7 @@ package com.efttt.lockall;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.PixelFormat;
@@ -11,10 +12,13 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,6 +28,7 @@ import androidx.core.app.NotificationCompat;
 import java.lang.ref.WeakReference;
 
 public class ScreenTimeService extends Service {
+    public static boolean running = false;
     public static boolean ENABLED = true;
     public static long CHECK_INTERVAL = 1000; // 检查间隔1秒
     public static long MAX_USE_TIME = 40 * 60 * 1000;
@@ -44,15 +49,28 @@ public class ScreenTimeService extends Service {
     private WindowManager windowManager;
     private long totalTime = 0;
     private CountDownTimer countDownTimer;
+    private View passwordInputView;
+    private static ASettings settings;
 
     private static String TAG = "ScreenTimeService";
     private String CHANNEL_ID = "LockAll_CHNNEL1";
 
     public static void init() {
-        ASettings settings = ASettings.getInstance();
+        running = true;
+        settings = ASettings.getInstance();
         ENABLED = settings.isHelperEnabled();
-        MAX_USE_TIME = settings.getMaxUseTime() * 10 * 1000;
-        REST_TIME = settings.getRestTime() * 10 * 1000;
+        MAX_USE_TIME = settings.getMaxUseTime() * 60 * 1000;
+        REST_TIME = settings.getRestTime() * 60 * 1000;
+        long currentM = System.currentTimeMillis();
+        Helper.setLastOn(settings.getLastOnTime());
+        // 还在休息中, 以休息时间为准
+        if(settings.getLastLockTime() != 0 && currentM - settings.getLastLockTime() < REST_TIME) {
+//            Helper.setShowing(false);
+            Helper.setLastOff(currentM);
+            Helper.setRestStart(settings.getLastLockTime());
+        } else {
+            settings.setLastLockTime(0);
+        }
     }
 
     @Override
@@ -194,20 +212,79 @@ public class ScreenTimeService extends Service {
                     Intent biometricIntent = new Intent(this, BiometricPromptActivity.class);
                     biometricIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(biometricIntent);
+                    // 打开密码弹窗
+//                    showPasswordInputDialog();
                 }
             });
         });
+    }
+
+    private void showPasswordInputDialog() {
+        removePassView();
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        passwordInputView = inflater.inflate(R.layout.password_input_dialog, null);
+
+        final EditText passwordEditText = passwordInputView.findViewById(R.id.passwordEditText);
+        Button submitButton = passwordInputView.findViewById(R.id.submitButton);
+
+        submitButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String inputPassword = passwordEditText.getText().toString();
+                if (inputPassword.equals("tty0")) { // Replace "your_password" with the actual password
+                    Toast.makeText(ScreenTimeService.this, "Password correct", Toast.LENGTH_SHORT).show();
+                    resetRestTime();
+                } else {
+                    Toast.makeText(ScreenTimeService.this, "Password incorrect", Toast.LENGTH_SHORT).show();
+                    removePassView();
+                }
+            }
+        });
+
+        WindowManager.LayoutParams params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, // Note: Use TYPE_APPLICATION_OVERLAY for API level 26 and above
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM,
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
+        );
+        params.gravity = Gravity.CENTER;
+
+        windowManager.addView(passwordInputView, params);
+
+        // 手动请求软键盘显示
+        passwordEditText.post(new Runnable() {
+            @Override
+            public void run() {
+                passwordEditText.requestFocus();
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, 0);
+                }
+            }
+        });
+    }
+
+    private void removePassView() {
+        if (windowManager != null && passwordInputView != null) {
+            windowManager.removeView(passwordInputView);
+            passwordInputView = null;
+        }
     }
 
     public void resetRestTime() {
         Helper.setLastOn(0);
         Helper.setLastOff(0);
         Helper.setShowing(false);
+        settings.setLastOnTime(0);
+        settings.setLastLockTime(0);
+        settings.setLastOffTime(0);
         removeCountdownView();
     }
 
     private void removeCountdownView() {
         windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+        removePassView();
         if (countdownView != null && windowManager != null) {
             try {
                 if(countDownTimer != null) {
@@ -244,6 +321,7 @@ public class ScreenTimeService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        running = false;
         unregisterReceiver(screenTimeReceiver);
         Log.d("ScreenTimeService", "ScreenTimeReceiver unregistered");
         stopHandler();
@@ -268,13 +346,15 @@ public class ScreenTimeService extends Service {
                 if (ScreenTimeReceiver.isScreenOn()) {
                     // 在屏幕打开且不再休息的情况下, 才计数
                     if (!Helper.isShowing()) {
-                        if (currentM - Helper.getLastOff() > REST_TIME) {
+                        // 屏幕在正常状态息屏很久重新亮起的时候检查一下, 如果已经休息过了, 就重置
+                        if (Helper.getLastOff() != 0 && currentM - Helper.getLastOff() > REST_TIME) {
                             // 重置
                             Helper.setLastOn(0);
                             Helper.setLastOff(currentM);
                         }
                         if (Helper.getLastOn() == 0) {
                             Helper.setLastOn(currentM);
+                            settings.setLastOnTime(currentM);
                         } else {
                             // 正常处理
                             long timeRemain = MAX_USE_TIME - (currentM - Helper.getLastOn());
@@ -283,9 +363,13 @@ public class ScreenTimeService extends Service {
                                 // 这里可以添加屏幕亮屏超时的处理逻辑
                                 Helper.setShowing(true);
                                 Helper.setRestStart(currentM);
+                                settings.setLastLockTime(currentM);
                                 showUnlockDialog();
                             }
                             Helper.setLastOff(currentM);
+                            if(currentM - settings.getLastOffTime() > 60 * 1000) {
+                                settings.setLastOffTime(currentM);
+                            }
                         }
                     } else {
                         // 正在休息, 检查休息时间是不是到了
@@ -319,9 +403,7 @@ public class ScreenTimeService extends Service {
                         // 正在休息倒计时, 这里可能要开启检测, 避免卸载
 
                     } else {
-                        Helper.setRestStart(0);
-                        Helper.setShowing(false);
-                        Helper.setLastOn(0);
+                        resetRestTime();
                     }
                 }
                 handler.postDelayed(this, CHECK_INTERVAL);

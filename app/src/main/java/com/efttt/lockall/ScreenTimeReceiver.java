@@ -13,7 +13,6 @@ public class ScreenTimeReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
             screenOn = true;
-            ScreenTimeService.sServiceRef.get().showUnlockDialog();
             Log.d("ScreenTimeReceiver", "Screen ON at: " + System.currentTimeMillis());
         } else if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
             screenOn = false;

@@ -33,10 +33,18 @@ public class TouchHelperService extends AccessibilityService {
         }
     }
 
+    public void startScreenHelperService() {
+        if(!ScreenTimeService.running) {
+            Intent serviceIntent = new Intent(this, ScreenTimeService.class);
+            startService(serviceIntent);
+        }
+    }
+
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
         if (serviceImpl != null) {
             serviceImpl.onAccessibilityEvent(event);
+            startScreenHelperService();
         }
     }
 
